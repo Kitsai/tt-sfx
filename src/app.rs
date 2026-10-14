@@ -14,9 +14,7 @@ impl eframe::App for TtSfxApp {
     fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ui, |ui| {
             if ui.button("Teste").clicked()
-                && let Err(e) = self
-                    ._sound_service
-                    .play_from_path(Path::new("resources\\pf.mp3"))
+                && let Err(e) = self._sound_service.play_from_data("pf.mp3")
             {
                 error!("Failed to play test sound: {}", e);
             }

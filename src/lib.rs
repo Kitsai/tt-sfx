@@ -1,6 +1,6 @@
 mod app;
+mod error;
 mod files;
-mod result;
 mod sound;
 
 pub use app::TtSfxApp;

@@ -41,6 +41,16 @@ Three message categories flow from host to clients over the WebSocket connection
 
 Expect this to shape the eventual module layout: a server/host side (WebSocket server, asset distribution, broadcast + per-client targeting) and a client side (WebSocket client, asset cache, local playback via `rodio` triggered by incoming events) as distinct modules, with `serde`/`bincode` defining the shared message types between them.
 
+### File storage
+
+`FilesService` (`src/files/`) resolves three per-user directories via `directories::ProjectDirs`:
+
+- **data** — the host's sound files (the library the DM owns; persistent).
+- **cache** — sound files a client received from a host (disposable; re-synced by hash).
+- **config** — general user configuration.
+
+Writes go through `AssetWriter` (temp file, hash while writing, atomic persist).
+
 ### Dependencies
 
 - `eframe` — the native application shell for `egui` (window creation, event loop, native options). This is what `TtSfxApp::run()` calls into.

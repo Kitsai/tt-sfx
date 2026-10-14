@@ -13,13 +13,12 @@ pub struct TtSfxApp {
 impl eframe::App for TtSfxApp {
     fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ui, |ui| {
-            if ui.button("Teste").clicked() {
-                if let Err(e) = self
+            if ui.button("Teste").clicked()
+                && let Err(e) = self
                     ._sound_service
                     .play_from_path(Path::new("resources\\pf.mp3"))
-                {
-                    error!("Failed to play test sound: {}", e);
-                }
+            {
+                error!("Failed to play test sound: {}", e);
             }
         });
     }
@@ -43,3 +42,5 @@ impl TtSfxApp {
         }
     }
 }
+
+mod ui;

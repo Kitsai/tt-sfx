@@ -1,12 +1,13 @@
 use std::{
     fs::File,
-    io::{BufReader, BufWriter, Write},
+    io::BufReader,
     path::{Path, PathBuf},
 };
 
-use bytes::Bytes;
-
-use crate::{files::asset_writer::AssetWriter, result::TtSfxResult};
+use crate::{
+    error::{FsResultExt, TtsfxResult},
+    files::asset_writer::AssetWriter,
+};
 
 pub struct FilesService {
     dirs: FileDirs,
@@ -35,51 +36,36 @@ impl FilesService {
         Self { dirs }
     }
 
-    pub fn reader_from_path(path: &Path) -> TtSfxResult<BufReader<File>> {
-        let file = File::open(path)?;
+    pub fn reader_from_path(path: &Path) -> TtsfxResult<BufReader<File>> {
+        let file = File::open(path).fs_context(crate::error::FsOperation::Read, path)?;
         Ok(BufReader::new(file))
     }
 
-    pub fn writer_to_path(path: &Path) -> TtSfxResult<BufWriter<File>> {
-        let file = File::create(path)?;
-        Ok(BufWriter::new(file))
-    }
-
-    fn write_buffer(
-        dir: &Path,
-        name: &str,
-        chunks: impl Iterator<Item = TtSfxResult<Bytes>>,
-    ) -> TtSfxResult<blake3::Hash> {
-        std::fs::create_dir_all(dir)?;
-        let mut tmp = tempfile::NamedTempFile::new_in(dir)?;
-        let mut hasher = blake3::Hasher::new();
-
-        for chunk in chunks {
-            let chunk = chunk?;
-            tmp.write_all(&chunk)?;
-            hasher.update(&chunk);
-        }
-
-        tmp.persist(dir.join(name))?;
-        Ok(hasher.finalize())
-    }
-
-    pub fn reader_from_data(&self, name: &str) -> TtSfxResult<BufReader<File>> {
+    pub fn reader_from_data(&self, name: &str) -> TtsfxResult<BufReader<File>> {
         let path = self.dirs.data.join(name);
         Self::reader_from_path(&path)
     }
 
-    pub fn writer_to_data(&self, name: &str) -> TtSfxResult<AssetWriter> {
+    pub fn writer_to_data(&self, name: &str) -> TtsfxResult<AssetWriter> {
         AssetWriter::begin(&self.dirs.data, name)
     }
 
-    pub fn reader_from_cache(&self, name: &str) -> TtSfxResult<BufReader<File>> {
+    pub fn reader_from_cache(&self, name: &str) -> TtsfxResult<BufReader<File>> {
         let path = self.dirs.cache.join(name);
         Self::reader_from_path(&path)
     }
 
-    pub fn writer_to_cache(&self, name: &str) -> TtSfxResult<AssetWriter> {
+    pub fn writer_to_cache(&self, name: &str) -> TtsfxResult<AssetWriter> {
         AssetWriter::begin(&self.dirs.cache, name)
+    }
+
+    pub fn reader_from_config(&self, name: &str) -> TtsfxResult<BufReader<File>> {
+        let path = self.dirs.config.join(name);
+        Self::reader_from_path(&path)
+    }
+
+    pub fn writer_to_config(&self, name: &str) -> TtsfxResult<AssetWriter> {
+        AssetWriter::begin(&self.dirs.config, name)
     }
 }
 
